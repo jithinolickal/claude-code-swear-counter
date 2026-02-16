@@ -1,0 +1,22 @@
+{
+  "name": "claude-code-swear-counter",
+  "version": "0.1.0",
+  "description": "Count swearing in your Claude Code conversations (and Claude's apologies)",
+  "type": "module",
+  "bin": {
+    "claude-code-swear-counter": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --target node18",
+    "dev": "tsx src/index.ts"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MIT"
+}
