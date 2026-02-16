@@ -18,5 +18,19 @@
   "files": [
     "dist"
   ],
-  "license": "MIT"
+  "author": "jithinolickal",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jithinolickal/claude-code-swear-counter"
+  },
+  "homepage": "https://github.com/jithinolickal/claude-code-swear-counter",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "swear",
+    "counter",
+    "cli",
+    "sycophancy"
+  ]
 }
