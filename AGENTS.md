@@ -47,6 +47,14 @@ Claude tiers (by (apologies+sycophancy)/conversation rate):
 
 Survival odds map to user tiers: 71.4% -> 48.3% -> 29.7% -> 14.2% -> 4.8% -> 0.3%
 
+## Publishing
+- **npm package**: `claude-code-swear-counter` (published under `jithinolickal`)
+- **GitHub**: `jithinolickal/claude-code-swear-counter`
+- **Auto-publish**: Push a git tag `v*` triggers `.github/workflows/publish.yml` → builds and publishes to npm
+- **GitHub secret**: `NPM_TOKEN` must be set in repo settings for CI to publish
+- **Manual publish**: `npm version patch && git push && git push --tags`
+- **Local publish**: `npm run build && NPM_TOKEN=<token> npm publish` (uses project-level `.npmrc`)
+
 ## Key Design Decisions
 - Thresholds are intentionally shifted low so most users land in a more dramatic tier (engagement bait)
 - Tier names chosen for shareability: pop culture refs (Eminem, Gordon Ramsay), meme culture (Karen Mode), visceral (Psycho)
