@@ -25,7 +25,7 @@ Then it gives you both a tier. Yours is probably worse than you think.
 ## Quick start
 
 ```bash
-npx claude-code-swear-counter
+npx --yes claude-code-swear-counter@latest
 ```
 
 That's it.
