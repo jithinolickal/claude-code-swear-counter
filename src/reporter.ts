@@ -151,6 +151,22 @@ export function report(counts: Counts, opts: ReporterOptions) {
       for (const line of tableBox("You swore", sortedEntries(counts.swears), counts.totalSwears)) {
         console.log(line);
       }
+
+      // Show fuzzy matches if any
+      const fuzzyTotal = Object.values(counts.fuzzyMatches).reduce((a, b) => a + b, 0);
+      if (fuzzyTotal > 0) {
+        console.log();
+        for (const line of tableBox("Obfuscated swears detected", sortedEntries(counts.fuzzyMatches), fuzzyTotal)) {
+          console.log(line);
+        }
+      }
+
+      // Show indirect swearing count
+      if (counts.indirectSwearing > 0) {
+        console.log();
+        console.log(`  ${ORANGE}${BOLD}Indirect swearing/frustration:${RESET} ${counts.indirectSwearing} messages`);
+        console.log(`  ${DIM}(Detected via semantic analysis)${RESET}`);
+      }
     }
     if (opts.showClaude) {
       console.log();

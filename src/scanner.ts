@@ -2,11 +2,15 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
 import { SWEAR_WORDS, APOLOGY_PATTERNS, SYCOPHANCY_PATTERNS, type Pattern } from "./patterns.js";
+import { findFuzzyMatches, getBaseSwearWords } from "./fuzzy.js";
+import { detectIndirectSwearing } from "./semantic.js";
 
 export interface Counts {
   swears: Record<string, number>;
   apologies: Record<string, number>;
   sycophancy: Record<string, number>;
+  fuzzyMatches: Record<string, number>;
+  indirectSwearing: number;
   totalSwears: number;
   totalApologies: number;
   totalSycophancy: number;
@@ -83,6 +87,8 @@ export function scan(): Counts {
     swears: {},
     apologies: {},
     sycophancy: {},
+    fuzzyMatches: {},
+    indirectSwearing: 0,
     totalSwears: 0,
     totalApologies: 0,
     totalSycophancy: 0,
@@ -91,6 +97,7 @@ export function scan(): Counts {
 
   const files = findJsonlFiles();
   counts.filesScanned = files.length;
+  const baseSwearWords = getBaseSwearWords();
 
   for (const file of files) {
     const content = readFileSync(file, "utf-8");
@@ -105,7 +112,21 @@ export function scan(): Counts {
 
       const userText = extractUserText(msg);
       if (userText) {
+        // Original regex-based matching
         mergeInto(counts.swears, countMatches(userText, SWEAR_WORDS));
+
+        // Fuzzy matching for obfuscated swear words
+        const fuzzyMatches = findFuzzyMatches(userText, baseSwearWords, 0.7);
+        for (const match of fuzzyMatches) {
+          const label = `${match.label} (fuzzy)`;
+          counts.fuzzyMatches[label] = (counts.fuzzyMatches[label] || 0) + 1;
+        }
+
+        // Semantic detection for indirect swearing
+        const semantic = detectIndirectSwearing(userText, 0.5);
+        if (semantic.totalScore > 0.5) {
+          counts.indirectSwearing++;
+        }
       }
 
       const assistantText = extractAssistantText(msg);
