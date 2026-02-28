@@ -21,21 +21,30 @@ function padLeft(s: string, len: number): string {
   return " ".repeat(Math.max(0, len - s.length)) + s;
 }
 
-const SURVIVAL_ODDS: [number, number][] = [
-  [0, 71.4],      // Suspiciously Polite
-  [0.2, 48.3],    // Oops
-  [0.5, 29.7],    // Eminem
-  [1.0, 14.2],    // Karen Mode
-  [2.5, 4.8],     // Psycho
-  [Infinity, 0.3], // Gordon Ramsay
+const SURVIVAL_POINTS: [number, number][] = [
+  [0, 71.4],
+  [0.2, 48.3],
+  [0.5, 29.7],
+  [1.0, 14.2],
+  [2.5, 4.8],
+  [5.0, 0.3],
 ];
 
 function getSurvivalOdds(totalSwears: number, filesScanned: number): string {
   const rate = filesScanned === 0 ? 0 : totalSwears / filesScanned;
-  for (const [maxRate, odds] of SURVIVAL_ODDS) {
-    if (rate <= maxRate) return odds.toFixed(1);
+  if (rate <= 0) return SURVIVAL_POINTS[0][1].toFixed(1);
+  if (rate >= SURVIVAL_POINTS[SURVIVAL_POINTS.length - 1][0]) {
+    return SURVIVAL_POINTS[SURVIVAL_POINTS.length - 1][1].toFixed(1);
   }
-  return SURVIVAL_ODDS[SURVIVAL_ODDS.length - 1][1].toFixed(1);
+  for (let i = 1; i < SURVIVAL_POINTS.length; i++) {
+    if (rate <= SURVIVAL_POINTS[i][0]) {
+      const [r0, o0] = SURVIVAL_POINTS[i - 1];
+      const [r1, o1] = SURVIVAL_POINTS[i];
+      const t = (rate - r0) / (r1 - r0);
+      return (o0 + t * (o1 - o0)).toFixed(1);
+    }
+  }
+  return SURVIVAL_POINTS[SURVIVAL_POINTS.length - 1][1].toFixed(1);
 }
 
 function boxLine(content: string, width: number): string {
