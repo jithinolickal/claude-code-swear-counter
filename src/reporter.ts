@@ -13,6 +13,24 @@ function sortedEntries(obj: Record<string, number>): [string, number][] {
   return Object.entries(obj).sort((a, b) => b[1] - a[1]);
 }
 
+function stripAnsi(s: string): string {
+  return s.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+function sideBySide(left: string[], right: string[], gap: number = 4): string[] {
+  const leftWidth = Math.max(...left.map(l => stripAnsi(l).length), 0);
+  const lines: string[] = [];
+  const max = Math.max(left.length, right.length);
+  for (let i = 0; i < max; i++) {
+    const l = left[i] || "";
+    const r = right[i] || "";
+    const lVisible = stripAnsi(l).length;
+    const padded = l + " ".repeat(Math.max(0, leftWidth - lVisible + gap));
+    lines.push(padded + r);
+  }
+  return lines;
+}
+
 function padRight(s: string, len: number): string {
   return s + " ".repeat(Math.max(0, len - s.length));
 }
@@ -100,41 +118,40 @@ function printSummary(counts: Counts, opts: ReporterOptions) {
   }
   console.log();
 
+  const left: string[] = [];
+  const right: string[] = [];
+
   if (opts.showUser) {
     const user = getUserTier(counts.totalSwears, convs);
-    console.log(`  You → Claude     ${YELLOW}"${user.label}"${RESET}`);
-    console.log(`                   ${counts.totalSwears} swears · ${user.rate.toFixed(2)}/conv`);
-    console.log(`                   ${DIM}${user.tagline}${RESET}`);
+    left.push(`  You → Claude     ${YELLOW}"${user.label}"${RESET}`);
+    left.push(`                   ${counts.totalSwears} swears · ${user.rate.toFixed(2)}/conv`);
+    left.push(`                   ${DIM}${user.tagline}${RESET}`);
   }
 
-  if (opts.showUser && opts.showClaude) console.log();
+  if (opts.showUser && opts.showClaude) left.push("");
 
   if (opts.showClaude) {
     const claude = getClaudeTier(counts.totalApologies, counts.totalSycophancy, convs);
-    console.log(`  Claude → You     ${YELLOW}"${claude.label}"${RESET}`);
-    console.log(`                   ${claude.total} apologies+flattery · ${claude.rate.toFixed(2)}/conv`);
-    console.log(`                   ${DIM}${claude.tagline}${RESET}`);
+    left.push(`  Claude → You     ${YELLOW}"${claude.label}"${RESET}`);
+    left.push(`                   ${claude.total} apologies+flattery · ${claude.rate.toFixed(2)}/conv`);
+    left.push(`                   ${DIM}${claude.tagline}${RESET}`);
   }
 
-  // Fun stats
+  // Fun stats on the right
   if (opts.showUser && counts.totalSwears > 0) {
     const topSwear = sortedEntries(counts.swears)[0];
     if (topSwear) {
-      console.log(`\n  ${DIM}Your go-to:${RESET} ${BOLD}"${topSwear[0]}"${RESET} ${DIM}(${topSwear[1]} times)${RESET}`);
+      right.push(`${DIM}Your go-to:${RESET} ${BOLD}"${topSwear[0]}"${RESET} ${DIM}(${topSwear[1]}x)${RESET}`);
     }
     if (counts.worstConversation) {
-      console.log(`  ${DIM}Worst session:${RESET} ${BOLD}${counts.worstConversation.swears} swears${RESET} ${DIM}in one conversation${RESET}`);
+      right.push(`${DIM}Worst session:${RESET} ${BOLD}${counts.worstConversation.swears} swears${RESET}`);
     }
-
-    // Angriest folder
     const projectEntries = sortedEntries(counts.swearsByProject);
     if (projectEntries.length > 1) {
       const [proj, count] = projectEntries[0];
       const shortName = proj.split("/").pop() || proj;
-      console.log(`  ${DIM}Angriest folder:${RESET} ${BOLD}${shortName}${RESET} ${DIM}(${count} swears)${RESET}`);
+      right.push(`${DIM}Angriest folder:${RESET} ${BOLD}${shortName}${RESET} ${DIM}(${count})${RESET}`);
     }
-
-    // Worst date
     const dateEntries = sortedEntries(counts.swearsByDate);
     if (dateEntries.length > 0) {
       const [dateStr, count] = dateEntries[0];
@@ -142,7 +159,7 @@ function printSummary(counts: Counts, opts: ReporterOptions) {
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       const label = `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
-      console.log(`  ${DIM}Worst day:${RESET} ${BOLD}${label}${RESET} ${DIM}(${count} swears)${RESET}`);
+      right.push(`${DIM}Worst day:${RESET} ${BOLD}${label}${RESET} ${DIM}(${count})${RESET}`);
     }
   }
 
@@ -150,8 +167,13 @@ function printSummary(counts: Counts, opts: ReporterOptions) {
     const allClaude = { ...counts.apologies, ...counts.sycophancy };
     const topClaude = sortedEntries(allClaude)[0];
     if (topClaude) {
-      console.log(`  ${DIM}Claude's crutch:${RESET} ${BOLD}"${topClaude[0]}"${RESET} ${DIM}(${topClaude[1]} times)${RESET}`);
+      if (right.length > 0) right.push("");
+      right.push(`${DIM}Claude's crutch:${RESET} ${BOLD}"${topClaude[0]}"${RESET} ${DIM}(${topClaude[1]}x)${RESET}`);
     }
+  }
+
+  for (const line of sideBySide(left, right, 18)) {
+    console.log(line);
   }
 
   if (opts.showUser) {
