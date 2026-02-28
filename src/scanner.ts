@@ -79,6 +79,8 @@ function extractAssistantText(msg: any): string | null {
   return null;
 }
 
+const SPINNER = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+
 export function scan(): Counts {
   const counts: Counts = {
     swears: {},
@@ -93,8 +95,11 @@ export function scan(): Counts {
 
   const files = findJsonlFiles();
   counts.filesScanned = files.length;
+  let frame = 0;
 
-  for (const file of files) {
+  for (let fi = 0; fi < files.length; fi++) {
+    const file = files[fi];
+    process.stderr.write(`\r  ${SPINNER[frame++ % SPINNER.length]} Scanning ${fi + 1}/${files.length} conversations...`);
     let fileSwears = 0;
     const content = readFileSync(file, "utf-8");
     for (const line of content.split("\n")) {
@@ -125,6 +130,8 @@ export function scan(): Counts {
       counts.worstConversation = { project, swears: fileSwears };
     }
   }
+
+  process.stderr.write(`\r${" ".repeat(50)}\r`);
 
   counts.totalSwears = Object.values(counts.swears).reduce((a, b) => a + b, 0);
   counts.totalApologies = Object.values(counts.apologies).reduce((a, b) => a + b, 0);
