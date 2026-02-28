@@ -75,10 +75,30 @@ export const APOLOGY_PATTERNS: Pattern[] = [
 ];
 
 export const SYCOPHANCY_PATTERNS: Pattern[] = [
+  // Agreement/validation
   { label: "You're absolutely right", regex: /\byou'?re absolutely right\b/gi },
   { label: "You're right", regex: /\byou'?re right\b/gi },
+  { label: "Absolutely!", regex: /\babsolutely[!.]\b/gi },
+  { label: "Exactly!", regex: /\bexactly[!.]\b/gi },
+  { label: "Of course!", regex: /\bof course[!.]\b/gi },
+
+  // Flattery
   { label: "Great question", regex: /\bgreat question\b/gi },
   { label: "Good question", regex: /\bgood question\b/gi },
   { label: "Excellent question", regex: /\bexcellent question\b/gi },
   { label: "That's a great point", regex: /\bthat'?s a great point\b/gi },
+  { label: "Good point", regex: /\bgood point\b/gi },
+  { label: "That makes sense", regex: /\bthat makes (?:total |perfect |complete )?sense\b/gi },
+  { label: "You make a good point", regex: /\byou make a (?:good|great|valid|fair) point\b/gi },
+  { label: "Great catch", regex: /\bgreat catch\b/gi },
+  { label: "Good catch", regex: /\bgood catch\b/gi },
+  { label: "Sharp observation", regex: /\bsharp observation\b/gi },
+
+  // Over-eager helpfulness
+  { label: "Happy to help", regex: /\bhappy to help\b/gi },
+  { label: "Great idea", regex: /\bgreat idea\b/gi },
+  { label: "Excellent idea", regex: /\bexcellent idea\b/gi },
+  { label: "I'd be happy to", regex: /\bI'?d be happy to\b/gi },
+  { label: "I appreciate", regex: /\bI appreciate (?:you|your|that|the)\b/gi },
+  { label: "Thank you for", regex: /\bthank you for (?:pointing|sharing|bringing|letting|clarifying)\b/gi },
 ];
