@@ -12,6 +12,8 @@ export interface Counts {
   totalSycophancy: number;
   filesScanned: number;
   worstConversation: { project: string; swears: number } | null;
+  swearsByProject: Record<string, number>;
+  swearsByDate: Record<string, number>; // YYYY-MM-DD
 }
 
 function countMatches(text: string, patterns: Pattern[]): Record<string, number> {
@@ -91,6 +93,8 @@ export function scan(): Counts {
     totalSycophancy: 0,
     filesScanned: 0,
     worstConversation: null,
+    swearsByProject: {},
+    swearsByDate: {},
   };
 
   const files = findJsonlFiles();
@@ -115,7 +119,13 @@ export function scan(): Counts {
       if (userText) {
         const matched = countMatches(userText, SWEAR_WORDS);
         mergeInto(counts.swears, matched);
-        fileSwears += Object.values(matched).reduce((a, b) => a + b, 0);
+        const matchCount = Object.values(matched).reduce((a, b) => a + b, 0);
+        fileSwears += matchCount;
+
+        if (matchCount > 0 && msg.timestamp) {
+          const date = new Date(msg.timestamp).toISOString().slice(0, 10);
+          counts.swearsByDate[date] = (counts.swearsByDate[date] || 0) + matchCount;
+        }
       }
 
       const assistantText = extractAssistantText(msg);
@@ -125,9 +135,12 @@ export function scan(): Counts {
       }
     }
 
-    if (fileSwears > 0 && (!counts.worstConversation || fileSwears > counts.worstConversation.swears)) {
+    if (fileSwears > 0) {
       const project = file.split("/").slice(-2, -1)[0].replace(/-Users-[^-]+-/, "").replace(/-/g, "/");
-      counts.worstConversation = { project, swears: fileSwears };
+      counts.swearsByProject[project] = (counts.swearsByProject[project] || 0) + fileSwears;
+      if (!counts.worstConversation || fileSwears > counts.worstConversation.swears) {
+        counts.worstConversation = { project, swears: fileSwears };
+      }
     }
   }
 

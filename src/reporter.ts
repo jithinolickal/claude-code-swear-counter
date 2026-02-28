@@ -125,6 +125,25 @@ function printSummary(counts: Counts, opts: ReporterOptions) {
     if (counts.worstConversation) {
       console.log(`  ${DIM}Worst session:${RESET} ${BOLD}${counts.worstConversation.swears} swears${RESET} ${DIM}in one conversation${RESET}`);
     }
+
+    // Angriest folder
+    const projectEntries = sortedEntries(counts.swearsByProject);
+    if (projectEntries.length > 1) {
+      const [proj, count] = projectEntries[0];
+      const shortName = proj.split("/").pop() || proj;
+      console.log(`  ${DIM}Angriest folder:${RESET} ${BOLD}${shortName}${RESET} ${DIM}(${count} swears)${RESET}`);
+    }
+
+    // Worst date
+    const dateEntries = sortedEntries(counts.swearsByDate);
+    if (dateEntries.length > 0) {
+      const [dateStr, count] = dateEntries[0];
+      const d = new Date(dateStr + "T00:00:00");
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const label = `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
+      console.log(`  ${DIM}Worst day:${RESET} ${BOLD}${label}${RESET} ${DIM}(${count} swears)${RESET}`);
+    }
   }
 
   if (opts.showClaude && (counts.totalApologies > 0 || counts.totalSycophancy > 0)) {
