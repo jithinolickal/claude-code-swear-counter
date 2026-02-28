@@ -11,6 +11,7 @@ export interface Counts {
   totalApologies: number;
   totalSycophancy: number;
   filesScanned: number;
+  worstConversation: { project: string; swears: number } | null;
 }
 
 function countMatches(text: string, patterns: Pattern[]): Record<string, number> {
@@ -87,12 +88,14 @@ export function scan(): Counts {
     totalApologies: 0,
     totalSycophancy: 0,
     filesScanned: 0,
+    worstConversation: null,
   };
 
   const files = findJsonlFiles();
   counts.filesScanned = files.length;
 
   for (const file of files) {
+    let fileSwears = 0;
     const content = readFileSync(file, "utf-8");
     for (const line of content.split("\n")) {
       if (!line.trim()) continue;
@@ -105,7 +108,9 @@ export function scan(): Counts {
 
       const userText = extractUserText(msg);
       if (userText) {
-        mergeInto(counts.swears, countMatches(userText, SWEAR_WORDS));
+        const matched = countMatches(userText, SWEAR_WORDS);
+        mergeInto(counts.swears, matched);
+        fileSwears += Object.values(matched).reduce((a, b) => a + b, 0);
       }
 
       const assistantText = extractAssistantText(msg);
@@ -113,6 +118,11 @@ export function scan(): Counts {
         mergeInto(counts.apologies, countMatches(assistantText, APOLOGY_PATTERNS));
         mergeInto(counts.sycophancy, countMatches(assistantText, SYCOPHANCY_PATTERNS));
       }
+    }
+
+    if (fileSwears > 0 && (!counts.worstConversation || fileSwears > counts.worstConversation.swears)) {
+      const project = file.split("/").slice(-2, -1)[0].replace(/-Users-[^-]+-/, "").replace(/-/g, "/");
+      counts.worstConversation = { project, swears: fileSwears };
     }
   }
 

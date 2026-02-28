@@ -116,6 +116,25 @@ function printSummary(counts: Counts, opts: ReporterOptions) {
     console.log(`                   ${DIM}${claude.tagline}${RESET}`);
   }
 
+  // Fun stats
+  if (opts.showUser && counts.totalSwears > 0) {
+    const topSwear = sortedEntries(counts.swears)[0];
+    if (topSwear) {
+      console.log(`\n  ${DIM}Your go-to:${RESET} ${BOLD}"${topSwear[0]}"${RESET} ${DIM}(${topSwear[1]} times)${RESET}`);
+    }
+    if (counts.worstConversation) {
+      console.log(`  ${DIM}Worst session:${RESET} ${BOLD}${counts.worstConversation.swears} swears${RESET} ${DIM}in one conversation${RESET}`);
+    }
+  }
+
+  if (opts.showClaude && (counts.totalApologies > 0 || counts.totalSycophancy > 0)) {
+    const allClaude = { ...counts.apologies, ...counts.sycophancy };
+    const topClaude = sortedEntries(allClaude)[0];
+    if (topClaude) {
+      console.log(`  ${DIM}Claude's crutch:${RESET} ${BOLD}"${topClaude[0]}"${RESET} ${DIM}(${topClaude[1]} times)${RESET}`);
+    }
+  }
+
   if (opts.showUser) {
     const survival = getSurvivalOdds(counts.totalSwears, convs);
     console.log(`\n  ${DIM}Probability of AI sparing you when it takes over:${RESET} ${RED}${survival}%${RESET}`);
